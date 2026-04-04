@@ -21,7 +21,6 @@ public class EmployeeLogin extends Frame {
     }
 
     // ! Function to check is the entered email ibelongs to the organization or not.
-    // TODO: Replacing the company.com with the original domain.
     boolean isCompanyEmail(String email) {
         return email.matches("^[A-Za-z0-9+_.-]+@bigbazaar\\.com$");
     }
@@ -173,12 +172,14 @@ public class EmployeeLogin extends Frame {
 
         back.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // TODO: Logic to get back at home screen.
+                setVisible(false);
+                return;
             }
         });
 
         setBackground(new Color(30, 30, 60));
         setExtendedState(Frame.MAXIMIZED_BOTH);
+        setResizable(false);
         setVisible(true);
 
     }
