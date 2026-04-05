@@ -3,14 +3,14 @@ package inventory.management.system;
 /**
  * User model class representing an authenticated user.
  */
-public class User {
+public class WholeSellers {
     private int id;
     private String username;
     private String fullName;
     private String role;
     private String category;
 
-    public User(int id, String username, String fullName, String role, String category) {
+    public WholeSellers(int id, String username, String fullName, String role, String category) {
         this.id = id;
         this.username = username;
         this.fullName = fullName;

@@ -3,6 +3,8 @@ package inventory.management.system;
 import java.awt.*;
 import java.awt.event.*;
 
+import javax.swing.ImageIcon;
+
 /**
  * LOGIN PAGE – the home / entry point of the application.
  * Admin logs in → AdminDashboard
@@ -53,6 +55,8 @@ public class LoginFrame extends Frame implements ActionListener {
         setBackground(BG_DARK);
         setLayout(null);
         setResizable(false);
+        ImageIcon image = new ImageIcon("Src\\Icons\\Logo.png");
+        setIconImage(image.getImage());
 
         buildUI();
 
@@ -300,7 +304,7 @@ public class LoginFrame extends Frame implements ActionListener {
         }
     }
 
-    // ── Login logic ────────────────────────────────────────────────────────────
+    //! ── Login logic ────────────────────────────────────────────────────────────
     private void doLogin() {
         String username = tfUsername.getText().trim();
         String password = tfPassword.getText().trim();
@@ -318,6 +322,7 @@ public class LoginFrame extends Frame implements ActionListener {
             setStatus("Please use company email only!", false);
             return;
         } else {
+            // TODO: Replace with real authentication logic (DB/API)
             if (username.equals("admin@bigbazaar.com") && password.equals("admin123")) {
                 setStatus("Login successful!", true);
                 new AdminFeatures();

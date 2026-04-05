@@ -13,6 +13,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -33,6 +34,8 @@ public class AddProduct extends JFrame {
     public AddProduct() {
         setLayout(null); // Set layout BEFORE adding components
         getContentPane().setBackground(new Color(214, 239, 163));
+        ImageIcon image = new ImageIcon("Src\\Icons\\Logo.png");
+        setIconImage(image.getImage());
 
         //! Get the screen size for the header width
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -306,7 +309,8 @@ public class AddProduct extends JFrame {
         back.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO: Connecting it to back page.
+                setVisible(false);
+                new AdminFeatures();
 
             }
         });

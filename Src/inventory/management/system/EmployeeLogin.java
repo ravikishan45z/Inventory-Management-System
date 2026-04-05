@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.ImageIcon;
+
 public class EmployeeLogin extends Frame {
 
     Button login, reset, back;
@@ -37,6 +39,8 @@ public class EmployeeLogin extends Frame {
 
         // ! Overall layout: left panel (fixed width) + right area for image
         setLayout(new BorderLayout());
+        ImageIcon Image = new ImageIcon("Src\\Icons\\Logo.png");
+        setIconImage(Image.getImage());
 
         // ! Left login panel
         loginPanel = new Panel() {
