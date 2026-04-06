@@ -1,8 +1,8 @@
 # Compiled Java files
 *.class
-*.jar
 *.war
 *.ear
+*.jar
 
 # IDE files
 .vscode/
@@ -10,6 +10,10 @@
 *.swp
 *.swo
 *.iml
+
+# Library files
+Library/
+*.lib
 
 # OS files
 .DS_Store
@@ -24,3 +28,7 @@ out/
 
 # Log files
 *.log
+
+# Secret files
+*.env
+*.properties

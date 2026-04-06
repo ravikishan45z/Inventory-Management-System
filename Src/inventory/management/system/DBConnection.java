@@ -1,24 +1,43 @@
 package inventory.management.system;
 
 import java.sql.*;
+import java.util.Properties;
+import java.io.FileInputStream;
 
 public class DBConnection {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/Inventory_Management";
-    private static final String USER = "root";
-    private static final String PASS = "Ravi1234@ravi";
+    private static String URL;
+    private static String USER;
+    private static String PASS;
 
-    private static Connection con;
+    public static Connection connection;
+
+    static {
+        try {
+            Properties p = new Properties();
+            FileInputStream fis = new FileInputStream("config.properties");
+            p.load(fis);
+
+            URL = p.getProperty("DB_URL");
+            USER = p.getProperty("DB_USERNAME");
+            PASS = p.getProperty("DB_PASSWORD");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static Connection getConnection() {
+
         try {
-            if (con == null || con.isClosed()) {
+            if (connection != null || connection.isClosed()) {
                 Class.forName("com.mysql.cj.jdbc.Driver");
-                con = DriverManager.getConnection(URL, USER, PASS);
+                connection = DriverManager.getConnection(URL, USER, PASS);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return con;
+        return connection;
     }
+
 }

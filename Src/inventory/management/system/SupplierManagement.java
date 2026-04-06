@@ -118,7 +118,7 @@ public class SupplierManagement extends JFrame implements ActionListener {
         title.setForeground(Color.WHITE);
         title.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        String[] columns = {"ID", "Name", "Mobile", "Age", "Email","Address", "Gender" };
+        String[] columns = {"ID", "Name", "Mobile", "GST Number", "Email","Address", "Company Type" };
                 
         tableModel = new DefaultTableModel(columns, 0);
         table = new JTable(tableModel);
@@ -168,14 +168,14 @@ public class SupplierManagement extends JFrame implements ActionListener {
         JTextField txtId = new JTextField();
         JTextField txtName = new JTextField();
         JTextField txtMobile = new JTextField();
-        JTextField txtAge = new JTextField();
+        JTextField txtGstNumber = new JTextField();
         JTextField txtEmail = new JTextField();
         JTextField txtAddress = new JTextField();
 
-        String[] genderOptions = { "Male", "Female", "Other" };
-        JComboBox<String> genderBox = new JComboBox<>(genderOptions);
+        String[] comTypeOptions = { "Private", "Government", "Sole Proprietorship" };
+        JComboBox<String> comTypeBox = new JComboBox<>(comTypeOptions);
 
-        JTextField[] fields = { txtId, txtName, txtMobile, txtAge, txtEmail,
+        JTextField[] fields = { txtId, txtName, txtMobile, txtGstNumber, txtEmail,
                 txtAddress};
 
         for (JTextField field : fields) {
@@ -200,10 +200,10 @@ public class SupplierManagement extends JFrame implements ActionListener {
         mobileLbl.setForeground(Color.WHITE);
         mobileLbl.setBackground(Color.WHITE);
 
-        JLabel ageLbl = new JLabel("Age: ");
-        ageLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
-        ageLbl.setForeground(Color.WHITE);
-        ageLbl.setBackground(Color.WHITE);
+        JLabel gstNumLbl = new JLabel("GST Number: ");
+        gstNumLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
+        gstNumLbl.setForeground(Color.WHITE);
+        gstNumLbl.setBackground(Color.WHITE);
 
         JLabel emailLbl = new JLabel("Email: ");
         emailLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
@@ -215,10 +215,10 @@ public class SupplierManagement extends JFrame implements ActionListener {
         addressLbl.setForeground(Color.WHITE);
         addressLbl.setBackground(Color.WHITE);
 
-        JLabel genderLbl = new JLabel("Gender:");
-        genderLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
-        genderLbl.setForeground(Color.WHITE);
-        genderLbl.setBackground(Color.WHITE);
+        JLabel comTypeLbl = new JLabel("Company Type: ");
+        comTypeLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
+        comTypeLbl.setForeground(Color.WHITE);
+        comTypeLbl.setBackground(Color.WHITE);
 
         form.add(idLbl);
         form.add(txtId);
@@ -226,16 +226,16 @@ public class SupplierManagement extends JFrame implements ActionListener {
         form.add(txtName);
         form.add(mobileLbl);
         form.add(txtMobile);
-        form.add(ageLbl);
-        form.add(txtAge);
+        form.add(gstNumLbl);
+        form.add(txtGstNumber);
         form.add(emailLbl);
         form.add(txtEmail);
         form.add(addressLbl);
         form.add(txtAddress);
-        form.add(genderLbl);
-        form.add(genderBox);
+        form.add(comTypeLbl);
+        form.add(comTypeBox);
 
-        genderBox.setFont(new Font("SansSerif", Font.BOLD, 18));
+        comTypeBox.setFont(new Font("SansSerif", Font.BOLD, 18));
 
         JPanel btnPanel = new JPanel();
         btnPanel.setLayout(null);
@@ -264,29 +264,20 @@ public class SupplierManagement extends JFrame implements ActionListener {
             String id = txtId.getText().trim();
             String name = txtName.getText().trim();
             String mobileNo = txtMobile.getText().trim();
-            String ageStr = txtAge.getText().trim();
+            String gstNum = txtGstNumber.getText().trim();
             String email = txtEmail.getText().trim();
             String address = txtAddress.getText().trim();
-            String gender = genderBox.getSelectedItem().toString();
+            String comType = comTypeBox.getSelectedItem().toString();
 
-            int age = 0;
-            try {
-                age = Integer.parseInt(ageStr);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(panel, "Age Should be number", "Invalid Format",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            if (id.isEmpty() || name.isEmpty() || mobileNo.isEmpty() || ageStr.isEmpty() || email.isEmpty()
-                    || address.isEmpty() || gender.isEmpty() ) {
+            if (id.isEmpty() || name.isEmpty() || mobileNo.isEmpty() || gstNum.isEmpty() || email.isEmpty()
+                    || address.isEmpty() || comType.isEmpty() || gstNum.isEmpty()) {
                 JOptionPane.showMessageDialog(panel, "Please fill all the fields.", "Empty fields",
                         JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if (age < 0) {
-                JOptionPane.showMessageDialog(panel, "Age should be positive number", "Invalid Age",
+            if (gstNum.length() < 18 || gstNum.length() > 18) {
+                JOptionPane.showMessageDialog(panel, "GST Number should be 18 character", "Invalid GST Number",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -304,12 +295,6 @@ public class SupplierManagement extends JFrame implements ActionListener {
                 return;
             }
 
-            if (!isCompanyEmail(email)) {
-                JOptionPane.showMessageDialog(panel, "Please provide company email to Supplier.", "Invalid Email",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
             // TODO : Insert into database
         });
 
@@ -318,10 +303,10 @@ public class SupplierManagement extends JFrame implements ActionListener {
             txtId.setText("");
             txtName.setText("");
             txtMobile.setText("");
-            txtAge.setText("");
+            txtGstNumber.setText("");
             txtEmail.setText("");
             txtAddress.setText("");
-            genderBox.setSelectedIndex(0);
+            comTypeBox.setSelectedIndex(0);
         });
 
         panel.add(title, BorderLayout.NORTH);
@@ -349,13 +334,13 @@ public class SupplierManagement extends JFrame implements ActionListener {
         JTextField txtId = new JTextField();
         JTextField txtName = new JTextField();
         JTextField txtMobile = new JTextField();
-        JTextField txtAge = new JTextField();
+        JTextField txtGstNumber = new JTextField();
         JTextField txtEmail = new JTextField();
         JTextField txtAddress = new JTextField();
-        String[] genderOptions = { "Male", "Female", "Other" };
-        JComboBox<String> genderBox = new JComboBox<>(genderOptions);
+        String[] comTypeOptions = { "Private", "Government", "Sole Proprietorship" };
+        JComboBox<String> comTypeBox = new JComboBox<>(comTypeOptions);
 
-        JTextField[] fields = { txtId, txtName, txtMobile, txtAge, txtEmail,
+        JTextField[] fields = { txtId, txtName, txtMobile, txtGstNumber, txtEmail,
                 txtAddress};
 
         for (JTextField field : fields) {
@@ -379,10 +364,10 @@ public class SupplierManagement extends JFrame implements ActionListener {
         mobileLbl.setForeground(Color.WHITE);
         mobileLbl.setBackground(Color.WHITE);
 
-        JLabel ageLbl = new JLabel("Age: ");
-        ageLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
-        ageLbl.setForeground(Color.WHITE);
-        ageLbl.setBackground(Color.WHITE);
+        JLabel gstNumLbl = new JLabel("GST Number: ");
+        gstNumLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
+        gstNumLbl.setForeground(Color.WHITE);
+        gstNumLbl.setBackground(Color.WHITE);
 
         JLabel emailLbl = new JLabel("Email: ");
         emailLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
@@ -394,12 +379,12 @@ public class SupplierManagement extends JFrame implements ActionListener {
         addressLbl.setForeground(Color.WHITE);
         addressLbl.setBackground(Color.WHITE);
 
-        JLabel genderLbl = new JLabel("Gender:");
-        genderLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
-        genderLbl.setForeground(Color.WHITE);
-        genderLbl.setBackground(Color.WHITE);
+        JLabel comTypeLbl = new JLabel("Company Type:");
+        comTypeLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
+        comTypeLbl.setForeground(Color.WHITE);
+        comTypeLbl.setBackground(Color.WHITE);
 
-        genderBox.setFont(new Font("SansSerif", Font.BOLD, 18));
+        comTypeBox.setFont(new Font("SansSerif", Font.BOLD, 18));
 
         form.add(idLbl);
         form.add(txtId);
@@ -407,14 +392,14 @@ public class SupplierManagement extends JFrame implements ActionListener {
         form.add(txtName);
         form.add(mobileLbl);
         form.add(txtMobile);
-        form.add(ageLbl);
-        form.add(txtAge);
+        form.add(gstNumLbl);
+        form.add(txtGstNumber);
         form.add(emailLbl);
         form.add(txtEmail);
         form.add(addressLbl);
         form.add(txtAddress);
-        form.add(genderLbl);
-        form.add(genderBox);
+        form.add(comTypeLbl);
+        form.add(comTypeBox);
 
         JPanel btnPanel = new JPanel();
         btnPanel.setLayout(null);
@@ -470,10 +455,10 @@ public class SupplierManagement extends JFrame implements ActionListener {
 
                     txtName.setText(safeToString(tableModel.getValueAt(i, 1)));
                     txtMobile.setText(safeToString(tableModel.getValueAt(i, 2)));
-                    txtAge.setText(safeToString(tableModel.getValueAt(i, 3)));
+                    txtGstNumber.setText(safeToString(tableModel.getValueAt(i, 3)));
                     txtEmail.setText(safeToString(tableModel.getValueAt(i, 4)));
                     txtAddress.setText(safeToString(tableModel.getValueAt(i, 5)));
-                    genderBox.setSelectedItem(safeToString(tableModel.getValueAt(i, 6)));
+                    comTypeBox.setSelectedItem(safeToString(tableModel.getValueAt(i, 6)));
                     foundIndex[0] = i;
                     found = true;
                     break;
@@ -486,29 +471,21 @@ public class SupplierManagement extends JFrame implements ActionListener {
             String id = txtId.getText().trim();
             String name = txtName.getText().trim();
             String mobileNo = txtMobile.getText().trim();
-            String ageStr = txtAge.getText().trim();
+            String gstNum = txtGstNumber.getText().trim();
             String email = txtEmail.getText().trim();
             String address = txtAddress.getText().trim();
-            String gender = genderBox.getSelectedItem().toString();
+            String comType = comTypeBox.getSelectedItem().toString();
 
-            int age = 0;
-            try {
-                age = Integer.parseInt(ageStr);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(panel, "Age Should be number", "Invalid Format",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
 
-            if (id.isEmpty() || name.isEmpty() || mobileNo.isEmpty() || ageStr.isEmpty() || email.isEmpty()
-                    || address.isEmpty() || gender.isEmpty()) {
+            if (id.isEmpty() || name.isEmpty() || mobileNo.isEmpty() || gstNum.isEmpty() || email.isEmpty()
+                    || address.isEmpty() || comType.isEmpty() || gstNum.isEmpty()) {
                 JOptionPane.showMessageDialog(panel, "Please fill all the fields.", "Empty fields",
                         JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if (age < 0) {
-                JOptionPane.showMessageDialog(panel, "Age should be positive number", "Invalid Age",
+            if (gstNum.length() != 15) {
+                JOptionPane.showMessageDialog(panel, "GST Number should be 15 characters", "Invalid Age",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -526,11 +503,6 @@ public class SupplierManagement extends JFrame implements ActionListener {
                 return;
             }
 
-            if (!isCompanyEmail(email)) {
-                JOptionPane.showMessageDialog(panel, "Please provide company email to Supplier.", "Invalid Salary",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
             // TODO : update database logic
         });
 
@@ -538,10 +510,10 @@ public class SupplierManagement extends JFrame implements ActionListener {
             txtId.setText("");
             txtName.setText("");
             txtMobile.setText("");
-            txtAge.setText("");
+            txtGstNumber.setText("");
             txtEmail.setText("");
             txtAddress.setText("");
-            genderBox.setSelectedIndex(0);
+            comTypeBox.setSelectedIndex(0);
         });
 
         panel.add(title, BorderLayout.NORTH);
@@ -582,13 +554,13 @@ public class SupplierManagement extends JFrame implements ActionListener {
         JLabel placeholder = new JLabel("");
 
         JTextField txtName = new JTextField();
-        JTextField txtAge = new JTextField();
+        JTextField txtGstNumber = new JTextField();
         JTextField txtEmail = new JTextField();
         JTextField txtAddress = new JTextField();
-        JTextField txtGender = new JTextField();
+        JTextField txtComType = new JTextField();
 
-        JTextField[] detailFields = { txtName, txtAge, txtEmail,
-                txtAddress, txtGender};
+        JTextField[] detailFields = { txtName, txtGstNumber, txtEmail,
+                txtAddress, txtComType};
 
         for (JTextField f : detailFields) {
             f.setFont(new Font("SansSerif", Font.BOLD, 18));
@@ -601,9 +573,9 @@ public class SupplierManagement extends JFrame implements ActionListener {
         nameLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
         nameLbl.setForeground(Color.WHITE);
 
-        JLabel ageLbl = new JLabel("Age:");
-        ageLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
-        ageLbl.setForeground(Color.WHITE);
+        JLabel gstNumLbl = new JLabel("GST Number:");
+        gstNumLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
+        gstNumLbl.setForeground(Color.WHITE);
 
         JLabel emailLbl = new JLabel("Email:");
         emailLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
@@ -613,9 +585,9 @@ public class SupplierManagement extends JFrame implements ActionListener {
         addressLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
         addressLbl.setForeground(Color.WHITE);
 
-        JLabel genderLbl = new JLabel("Gender:");
-        genderLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
-        genderLbl.setForeground(Color.WHITE);
+        JLabel comTypeLbl = new JLabel("Company Type: ");
+        comTypeLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
+        comTypeLbl.setForeground(Color.WHITE);
 
         // Add components to form (search row first)
         form.add(idLbl);
@@ -624,14 +596,14 @@ public class SupplierManagement extends JFrame implements ActionListener {
         form.add(searchBtn);
         form.add(nameLbl);
         form.add(txtName);
-        form.add(ageLbl);
-        form.add(txtAge);
+        form.add(gstNumLbl);
+        form.add(txtGstNumber);
         form.add(emailLbl);
         form.add(txtEmail);
         form.add(addressLbl);
         form.add(txtAddress);
-        form.add(genderLbl);
-        form.add(txtGender);
+        form.add(comTypeLbl);
+        form.add(txtComType);
 
         // Button panel (consistent with other panels)
         JPanel btnPanel = new JPanel();
@@ -677,10 +649,10 @@ public class SupplierManagement extends JFrame implements ActionListener {
                 if (val != null && id.equals(val.toString())) {
                     // populate fields from model columns (match columns in show panel)
                     txtName.setText(safeToString(tableModel.getValueAt(i, 1)));
-                    txtAge.setText(safeToString(tableModel.getValueAt(i, 3)));
+                    txtGstNumber.setText(safeToString(tableModel.getValueAt(i, 3)));
                     txtEmail.setText(safeToString(tableModel.getValueAt(i, 4)));
                     txtAddress.setText(safeToString(tableModel.getValueAt(i, 5)));
-                    txtGender.setText(safeToString(tableModel.getValueAt(i, 6)));
+                    txtComType.setText(safeToString(tableModel.getValueAt(i, 6)));
                     foundIndex[0] = i;
                     found = true;
                     break;
