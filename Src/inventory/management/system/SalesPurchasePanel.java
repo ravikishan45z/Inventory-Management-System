@@ -24,18 +24,22 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
 /**
  * Admin purchase workspace plus sales history viewer.
- * Sales entries are created by employees after employee login and shown here in read-only mode.
+ * Sales entries are created by employees after employee login and shown here in
+ * read-only mode.
  */
 public class SalesPurchasePanel extends JPanel {
 
     private static final String[] PURCHASE_HISTORY_COLS = {
-            "ID", "Supplier ID", "Supplier", "Category", "Product", "Qty", "Price/Unit", "Selling Price", "Total", "Date"
+            "ID", "Supplier ID", "Supplier", "Category", "Product", "Qty", "Price/Unit", "Selling Price", "Total",
+            "Date"
     };
     private static final String[] SALES_HISTORY_COLS = {
             "ID", "Customer ID", "Customer", "Category", "Product", "Qty", "Selling Price", "Total", "Date", "Sold By"
@@ -68,7 +72,7 @@ public class SalesPurchasePanel extends JPanel {
         setBackground(BG_DARK);
         setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        JLabel heading = new JLabel("Purchases", SwingConstants.CENTER);
+        JLabel heading = new JLabel("New Purchase", SwingConstants.CENTER);
         heading.setFont(FONT_TITLE);
         heading.setForeground(ACCENT);
         heading.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
@@ -83,6 +87,28 @@ public class SalesPurchasePanel extends JPanel {
         // Keep Sales History beside Purchase History for quick comparison.
         mainTabs.addTab("Sales History", wrapTab(buildSalesHistoryTab()));
         mainTabs.addTab("Purchase History", wrapTab(buildPurchaseHistoryTab()));
+
+        mainTabs.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JTabbedPane source = (JTabbedPane) e.getSource();
+                int selectedIndex = source.getSelectedIndex();
+                // System.out.println(selectedIndex); Debugging
+                if (selectedIndex == 0) {
+                    heading.setText("New Purchase");
+                    return;
+                } else if (selectedIndex == 1) {
+                    heading.setText("Sales History");
+                    return;
+                } else if (selectedIndex == 2) {
+                    heading.setText("Purchase History");
+                    return;
+                } else {
+                    return;
+                }
+
+            }
+        });
 
         add(mainTabs, BorderLayout.CENTER);
     }
@@ -167,11 +193,13 @@ public class SalesPurchasePanel extends JPanel {
                 return;
             }
             if (ProductCatalog.isPlaceholder(category)) {
-                JOptionPane.showMessageDialog(this, "Please select a category.", "Validation", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a category.", "Validation",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
             if (ProductCatalog.isPlaceholder(product)) {
-                JOptionPane.showMessageDialog(this, "Please select a product.", "Validation", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a product.", "Validation",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
             String sellingErr = validateMoneyValue(sellingPriceStr, "Selling price");
@@ -188,7 +216,7 @@ public class SalesPurchasePanel extends JPanel {
             double unit = Double.parseDouble(priceStr);
             double selling = Double.parseDouble(sellingPriceStr);
             double total = qty * unit;
-            //! int suppId = Integer.parseInt(supplierIdStr);
+            // ! int suppId = Integer.parseInt(supplierIdStr);
 
             clearAfterPurchase(tfSupplierId, tfSupplier, cbCategory, cbProduct, tfQty, tfPrice, tfSellingPrice, tfDate);
             JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this),
@@ -206,14 +234,18 @@ public class SalesPurchasePanel extends JPanel {
     }
 
     private JPanel buildPurchaseHistoryTab() {
-        // TODO: To load the purchase data from the database. For demo, new purchases in this session are shown here.
-        // !DEMO: purchaseHistoryModel.addRow(new Object[] {1, "52VCD23", "Aditya Patel", "Hardware", "Laptop",  25, 45000, 60000, 45000*25, "12/12/2025" });
+        // TODO: To load the purchase data from the database. For demo, new purchases in
+        // this session are shown here.
+        // !DEMO: purchaseHistoryModel.addRow(new Object[] {1, "52VCD23", "Aditya
+        // Patel", "Hardware", "Laptop", 25, 45000, 60000, 45000*25, "12/12/2025" });
         return tableInScrollPane(purchaseHistoryModel);
     }
 
     private JPanel buildSalesHistoryTab() {
-        // TODO: To load the sales data from the database and store it into the sales history model.
-        //! DEMO: salesHistoryModel.addRow(new Object[] {1, "52VCD23", "Aditya Patel", "Hardware", "Laptop",  25, 60000, 45000*25, "12/12/2025" });
+        // TODO: To load the sales data from the database and store it into the sales
+        // history model.
+        // ! DEMO: salesHistoryModel.addRow(new Object[] {1, "52VCD23", "Aditya Patel",
+        // "Hardware", "Laptop", 25, 60000, 45000*25, "12/12/2025" });
         return tableInScrollPane(salesHistoryModel);
     }
 
@@ -332,7 +364,8 @@ public class SalesPurchasePanel extends JPanel {
     }
 
     private void clearAfterPurchase(JTextField tfSupplierId, JTextField tfSupplier, JComboBox<String> cbCategory,
-            JComboBox<String> cbProduct, JTextField tfQty, JTextField tfPrice, JTextField tfSellingPrice, JTextField tfDate) {
+            JComboBox<String> cbProduct, JTextField tfQty, JTextField tfPrice, JTextField tfSellingPrice,
+            JTextField tfDate) {
         tfSupplierId.setText("");
         tfSupplier.setText("");
         cbCategory.setSelectedIndex(0);
@@ -365,7 +398,7 @@ public class SalesPurchasePanel extends JPanel {
         try {
             // int id = Integer.parseInt(idStr);
             // if (id <= 0) {
-            //     return fieldLabel + " must be a positive whole number.";
+            // return fieldLabel + " must be a positive whole number.";
             // }
         } catch (NumberFormatException ex) {
             return fieldLabel + " must be a valid whole number.";

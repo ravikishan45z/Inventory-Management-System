@@ -146,8 +146,10 @@ public class EmployeeLogin extends Frame {
         login.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Demo mode: open sales workspace directly on login click.
+                // TODO: Database logic to grant login to employee
                 dispose();
                 new EmployeeDashboardFrame();
+                return;
             }
         });
 
@@ -156,6 +158,7 @@ public class EmployeeLogin extends Frame {
                 tfUser.setText("");
                 tfPass.setText("");
                 lblMessage.setText(" ");
+                return;
             }
         });
 
@@ -163,6 +166,7 @@ public class EmployeeLogin extends Frame {
             public void actionPerformed(ActionEvent e) {
                 dispose();
                 new LoginFrame();
+                return;
             }
         });
 

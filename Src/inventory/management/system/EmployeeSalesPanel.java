@@ -21,6 +21,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * Employee-facing sales form (New Sale only).
@@ -29,6 +31,7 @@ import javax.swing.SwingUtilities;
 public class EmployeeSalesPanel extends JPanel {
 
     private JTabbedPane mainTabs;
+    JLabel heading;
 
     private static final Color BG_DARK = new Color(15, 23, 42);
     private static final Color BG_CARD = new Color(30, 41, 59);
@@ -49,7 +52,7 @@ public class EmployeeSalesPanel extends JPanel {
         setBackground(BG_DARK);
         setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        JLabel heading = new JLabel("Sales", SwingConstants.CENTER);
+        heading = new JLabel("New Sales", SwingConstants.CENTER);
         heading.setFont(FONT_TITLE);
         heading.setForeground(ACCENT);
         heading.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
@@ -61,6 +64,30 @@ public class EmployeeSalesPanel extends JPanel {
         mainTabs.setForeground(TEXT_WHITE);
 
         mainTabs.addTab("New Sale", wrapTab(buildNewSaleTab()));
+        mainTabs.addTab("Register Customer", wrapTab(buildNewCustomerTab()));
+        mainTabs.addTab("Change Password", wrapTab(buildChangePasswordTab()));
+
+        mainTabs.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JTabbedPane source = (JTabbedPane) e.getSource();
+                int selectedIndex = source.getSelectedIndex();
+                // System.out.println(selectedIndex); Debugging
+                if (selectedIndex == 0) {
+                    heading.setText("New Sales");
+                    return;
+                } else if (selectedIndex == 1) {
+                    heading.setText("Register New Customer");
+                    return;
+                } else if (selectedIndex == 2) {
+                    heading.setText("Change Password");
+                    return;
+                } else {
+                    return;
+                }
+
+            }
+        });
 
         add(mainTabs, BorderLayout.CENTER);
     }
@@ -149,7 +176,7 @@ public class EmployeeSalesPanel extends JPanel {
             int qty = Integer.parseInt(qtyStr);
             double price = Double.parseDouble(priceStr);
             double total = qty * price;
-            //! int custId = Integer.parseInt(customerIdStr);
+            // ! int custId = Integer.parseInt(customerIdStr);
             clearAfterSale(tfCustomerId, tfCustomer, cbCategory, cbProduct, tfQty, tfPrice, tfDate);
             JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this),
                     "Sale recorded successfully.\nCustomer ID: " + customerIdStr + "\nCustomer: " + customer
@@ -160,8 +187,143 @@ public class EmployeeSalesPanel extends JPanel {
 
             // TODO: Save the sales data into database.
         });
+
         panel.add(submit, gbc);
 
+        return panel;
+    }
+
+    private JPanel buildNewCustomerTab() {
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(BG_DARK);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JLabel lblCustomerId = makeFormLabel("Customer ID");
+        JLabel lblCustomer = makeFormLabel("Customer Name");
+        JLabel lblMobileNo = makeFormLabel("Mobile No.");
+        JLabel lblEmail = makeFormLabel("Email");
+        JLabel lblAddress = makeFormLabel("Address");
+
+        JTextField tfCustomerId = makeField();
+        JTextField tfCustomer = makeField();
+        JTextField tfMobileNo = makeField();
+        JTextField tfEmail = makeField();
+        JTextField tfAddress = makeField();
+
+        int row = 0;
+        addFormRow(panel, gbc, row++, lblCustomerId, tfCustomerId);
+        addFormRow(panel, gbc, row++, lblCustomer, tfCustomer);
+        addFormRow(panel, gbc, row++, lblMobileNo, tfMobileNo);
+        addFormRow(panel, gbc, row++, lblEmail, tfEmail);
+        addFormRow(panel, gbc, row++, lblAddress, tfAddress);
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton register = makePrimaryButton("Register");
+
+        register.addActionListener(e -> {
+            String customerIdStr = tfCustomerId.getText().trim();
+            String customer = tfCustomer.getText().trim();
+            String mobile = tfMobileNo.getText().trim();
+            String email = tfEmail.getText().trim();
+            String address = tfAddress.getText().trim();
+
+            String idErr = validateEntityId(customerIdStr, "Customer ID");
+            if (idErr != null) {
+                JOptionPane.showMessageDialog(this, idErr, "Validation", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String nameErr = validateEntityId(customer, "Customer Name");
+            if (nameErr != null) {
+                JOptionPane.showMessageDialog(this, idErr, "Validation", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String mobileErr = validateEntityId(mobile, "Mobile Number");
+            if (mobileErr != null) {
+                JOptionPane.showMessageDialog(this, idErr, "Validation", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String emailErr = validateEntityId(email, "Email");
+            if (emailErr != null) {
+                JOptionPane.showMessageDialog(this, idErr, "Validation", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String addressErr = validateEntityId(address, "Customer ID");
+            if (addressErr != null) {
+                JOptionPane.showMessageDialog(this, idErr, "Validation", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // TODO: Save the customer data into database.
+
+            JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), "Customer Registered Successfully",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            mainTabs.setSelectedIndex(0);
+        });
+
+        panel.add(register, gbc);
+        return panel;
+    }
+
+    private JPanel buildChangePasswordTab() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(BG_DARK);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JLabel lblOldPassword = makeFormLabel("Old Password");
+        JLabel lblNewPassword = makeFormLabel("New Password");
+        JLabel lblConfirmPassword = makeFormLabel("Confirm Password");
+
+        JTextField tfOldPassword = makeField();
+        JTextField tfNewPassword = makeField();
+        JTextField tfConfirmPassword = makeField();
+
+        int row = 0;
+        addFormRow(panel, gbc, row++, lblOldPassword, tfOldPassword);
+        addFormRow(panel, gbc, row++, lblNewPassword, tfNewPassword);
+        addFormRow(panel, gbc, row++, lblConfirmPassword, tfConfirmPassword);
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton changePassword = makePrimaryButton("Change Password");
+
+        changePassword.addActionListener(e -> {
+            String oldPasswordStr = tfOldPassword.getText().trim();
+            String newPassword = tfNewPassword.getText().trim();
+            String confirmPassword = tfConfirmPassword.getText().trim();
+
+            // TODO: Add further validations
+
+            if (!newPassword.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "Password Mismatched", "Mismatch", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            // TODO: Update the new password into database.
+
+            JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), "Password Changed Successfully",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            mainTabs.setSelectedIndex(0);
+        });
+
+        panel.add(changePassword, gbc);
         return panel;
     }
 
@@ -248,7 +410,7 @@ public class EmployeeSalesPanel extends JPanel {
         try {
             // int id = Integer.parseInt(idStr);
             // if (id <= 0) {
-            //     return fieldLabel + " must be a positive whole number.";
+            // return fieldLabel + " must be a positive whole number.";
             // }
         } catch (NumberFormatException ex) {
             return fieldLabel + " must be a valid whole number.";

@@ -431,7 +431,7 @@ public class SupplierManagement extends JFrame implements ActionListener {
         final int[] foundIndex = new int[] { -1 };
 
         loadBtn.addActionListener(e -> {
-            // TODO : Load from the Table if user exist.
+            // TODO : Load from the Table if supplier exist.
 
             String id = txtId.getText().trim();
             if (id.isEmpty()) {
