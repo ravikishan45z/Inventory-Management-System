@@ -2,6 +2,9 @@ package inventory.management.system;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import javax.swing.ImageIcon;
 
@@ -305,7 +308,7 @@ public class LoginFrame extends Frame implements ActionListener {
         }
     }
 
-    //! ── Login logic ────────────────────────────────────────────────────────────
+    // ! ── Login logic ────────────────────────────────────────────────────────────
     private void doLogin() {
         String username = tfUsername.getText().trim();
         String password = tfPassword.getText().trim();
@@ -323,14 +326,33 @@ public class LoginFrame extends Frame implements ActionListener {
             setStatus("Please use company email only!", false);
             return;
         } else {
-            // TODO: Replace with real authentication logic (DB/API)
-            if (username.equals("admin@bigbazaar.com") && password.equals("admin123")) {
-                setStatus("Login successful!", true);
-                new AdminFeatures();
-                dispose();
-            } else {
-                setStatus("Invalid credentials!", false);
+            try {
+
+                Connection conn = DBConnection.getConnection();
+                String adminLoginQuery = "SELECT * FROM ADMIN WHERE EMAIL = ? AND PASSWORD = ?;";
+                PreparedStatement psStmt = conn.prepareStatement(adminLoginQuery);
+                psStmt.setString(1, username);
+                psStmt.setString(2, password);
+
+                ResultSet res = psStmt.executeQuery();
+
+                if (res.next()) {
+                    setStatus("Login successful!", true);
+                    new AdminFeatures();
+                    dispose();
+                } else {
+                    setStatus("Invalid credentials!", false);
+                }
+
+                conn.close();
+                tfUsername.setText("");
+                tfPassword.setText("");
+                return;
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+
         }
     }
 

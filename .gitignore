@@ -32,3 +32,6 @@ out/
 # Secret files
 *.env
 *.properties
+
+# Any other files you want to ignore
+*.sql

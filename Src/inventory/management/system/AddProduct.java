@@ -12,11 +12,16 @@ import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -29,14 +34,14 @@ public class AddProduct extends JFrame {
     JPanel imagePanel;
     Canvas imgCanvas;
 
-        // ! ── Constructor ────────────────────────────────────────────────────────────
+    // ! ── Constructor ────────────────────────────────────────────────────────────
     public AddProduct() {
         setLayout(null); // Set layout BEFORE adding components
         getContentPane().setBackground(new Color(30, 30, 60));
         ImageIcon image = new ImageIcon("Src\\Icons\\Logo.png");
         setIconImage(image.getImage());
 
-        //! Get the screen size for the header width
+        // ! Get the screen size for the header width
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int screenWidth = (int) screenSize.getWidth();
 
@@ -52,7 +57,7 @@ public class AddProduct extends JFrame {
         form.setLayout(null);
         form.setBounds(30, 180, 735, 600);
         form.setBackground(new Color(30, 41, 59));
-        form.setBorder(BorderFactory.createEmptyBorder(0,0,0,10));
+        form.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 
         JLabel productNamelbl = new JLabel("Product Name: ");
         productNamelbl.setFont(new Font("SansSerif", Font.BOLD, 26));
@@ -77,13 +82,12 @@ public class AddProduct extends JFrame {
         productIdlbl.setBounds(40, 120, 250, 30);
         form.add(productIdlbl);
 
-        productIdField = new JTextField(25);
+        productIdField = new JTextField("PRO-BGB-0001");
         productIdField.setFont(new Font("SansSerif", Font.BOLD, 16));
         productIdField.setBackground(Color.WHITE);
-        productIdField.setForeground(Color.BLACK);
+        productIdField.setForeground(Color.GRAY);
         productIdField.setBounds(350, 120, 350, 30);
         form.add(productIdField);
-
 
         JLabel categorylbl = new JLabel("Category: ");
         categorylbl.setFont(new Font("SansSerif", Font.BOLD, 26));
@@ -115,7 +119,7 @@ public class AddProduct extends JFrame {
         description.setBounds(350, 240, 350, 120);
         form.add(description);
 
-        //! ------------- Label to show status ----------------------
+        // ! ------------- Label to show status ----------------------
         JLabel statuslbl = new JLabel("", JLabel.CENTER);
         statuslbl.setFont(new Font("SansSerif", Font.ITALIC, 14));
         statuslbl.setBackground(getForeground());
@@ -123,8 +127,7 @@ public class AddProduct extends JFrame {
         statuslbl.setBounds(300, 360, 400, 40);
         form.add(statuslbl);
 
-
-        //! ------------- Buttons ----------------------
+        // ! ------------- Buttons ----------------------
         addProduct = new Button("Add Product");
         addProduct.setFont(new Font("SansSerif", Font.BOLD, 18));
         addProduct.setBounds(350, 420, 150, 35);
@@ -156,7 +159,7 @@ public class AddProduct extends JFrame {
         back.setForeground(Color.BLACK);
         add(back);
 
-        //! ------------- Image Panel ----------------------
+        // ! ------------- Image Panel ----------------------
         imagePanel = new JPanel(null) {
             @Override
             public void paint(Graphics g) {
@@ -173,7 +176,7 @@ public class AddProduct extends JFrame {
         add(imagePanel);
 
         try {
-            //! ------------- Trying to load the image from system ----------------------
+            // ! ------------- Trying to load the image from system ----------------------
             Image adminImg = Toolkit.getDefaultToolkit().getImage("Src/Icons/AddProduct.png");
             imgCanvas = new Canvas(null) {
                 public void paint(Graphics g) {
@@ -193,7 +196,7 @@ public class AddProduct extends JFrame {
             imagePanel.add(placeholder);
         }
 
-        //! ======= Action Listeners ==========
+        // ! ======= Action Listeners ==========
 
         addProduct.addActionListener(new ActionListener() {
             @Override
@@ -203,18 +206,46 @@ public class AddProduct extends JFrame {
                 String categoryinfo = category.getText().trim();
                 String prodDescription = description.getText().trim();
 
-                //! ------------- Input validations ----------------------
+                // ! ------------- Input validations ----------------------
 
-                if (productName.isEmpty() || productId.isEmpty() || categoryinfo.equals("Select") || prodDescription.isEmpty()) {
+                if (productName.isEmpty() || productId.isEmpty() || categoryinfo.equals("")
+                        || prodDescription.isEmpty()) {
                     statuslbl.setText("Please fill all fields.");
+                    return;
+                }
+
+                if (productId.length() != 12 || !productId.matches("^[A-Z]{3}-[A-Z]{3}-[0-9]{4}$") || !productId.startsWith("PRO-BGB-")) {
+                    statuslbl.setText("Invalid Product ID format.");
+                    return;
+                }
+
+                if (prodDescription.length() > 200) {
+                    statuslbl.setText("Description is too large, Upto 200 characters are acceptable.");
                     return;
                 }
 
                 try {
 
                     statuslbl.setText("Adding Product.......");
-                    // TODO: Logic to add product into Database
 
+                    Connection conn = DBConnection.getConnection();
+                    String query = "INSERT INTO PRODUCT (PRODUCT_ID, PRODUCT_NAME, CATEGORY, DESCRIPTION) VALUES (?, ?, ?, ?);";
+                    PreparedStatement ps = conn.prepareStatement(query);
+                    ps.setString(1, productId);
+                    ps.setString(2, productName);
+                    ps.setString(3, categoryinfo);
+                    ps.setString(4, prodDescription);
+
+                    int affectedRows = ps.executeUpdate();
+
+                    if (affectedRows > 0) {
+                        JOptionPane.showMessageDialog(null, "Product Added Successfully", "Add Product",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+
+                    statuslbl.setText("");
+                    conn.close();
+                    return;
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -226,7 +257,7 @@ public class AddProduct extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 productNameField.setText("");
-                productIdField.setText("");
+                productIdField.setText("PRO-BGB-0001");
                 category.setText("");
                 description.setText("");
                 statuslbl.setText("");
@@ -249,6 +280,24 @@ public class AddProduct extends JFrame {
                 setVisible(false);
                 new AdminFeatures();
 
+            }
+        });
+
+        productIdField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (productIdField.getText().equals("PRO-BGB-0001")) {
+                    productIdField.setText("");
+                    productIdField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (productIdField.getText().isEmpty()) {
+                    productIdField.setForeground(Color.GRAY);
+                    productIdField.setText("PRO-BGB-0001");
+                }
             }
         });
 

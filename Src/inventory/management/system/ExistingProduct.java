@@ -13,6 +13,12 @@ import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -26,7 +32,7 @@ public class ExistingProduct extends JFrame {
 
     JTextField productNameField, productIdField, category;
     JTextArea description;
-    Button addProduct, clear, updateProduct, back, search, removeProduct;
+    Button newProduct, clear, updateProduct, back, search, removeProduct;
     JPanel imagePanel;
     Canvas imgCanvas;
 
@@ -63,10 +69,10 @@ public class ExistingProduct extends JFrame {
         productIdlbl.setBounds(40, 50, 250, 30);
         form.add(productIdlbl);
 
-        productIdField = new JTextField(25);
+        productIdField = new JTextField("PRO-BGB-0001");
         productIdField.setFont(new Font("SansSerif", Font.BOLD, 16));
         productIdField.setBackground(Color.WHITE);
-        productIdField.setForeground(Color.BLACK);
+        productIdField.setForeground(Color.GRAY);
         productIdField.setBounds(350, 50, 350, 30);
         form.add(productIdField);
 
@@ -125,12 +131,12 @@ public class ExistingProduct extends JFrame {
         form.add(statuslbl);
 
         // ! ------------- Buttons ----------------------
-        addProduct = new Button("Update Product");
-        addProduct.setFont(new Font("SansSerif", Font.BOLD, 18));
-        addProduct.setBounds(350, 450, 150, 35);
-        addProduct.setBackground(new Color(59, 130, 246));
-        addProduct.setForeground(Color.WHITE);
-        form.add(addProduct);
+        updateProduct = new Button("Update Product");
+        updateProduct.setFont(new Font("SansSerif", Font.BOLD, 18));
+        updateProduct.setBounds(350, 450, 150, 35);
+        updateProduct.setBackground(new Color(59, 130, 246));
+        updateProduct.setForeground(Color.WHITE);
+        form.add(updateProduct);
 
         clear = new Button("Clear");
         clear.setFont(new Font("SansSerif", Font.BOLD, 18));
@@ -153,12 +159,12 @@ public class ExistingProduct extends JFrame {
         removeProduct.setForeground(Color.WHITE);
         form.add(removeProduct);
 
-        updateProduct = new Button("Manage New Product");
-        updateProduct.setFont(new Font("SansSerif", Font.BOLD, 18));
-        updateProduct.setBounds(350, 510, 350, 35);
-        updateProduct.setBackground(Color.CYAN);
-        updateProduct.setForeground(Color.BLACK);
-        form.add(updateProduct);
+        newProduct = new Button("Manage New Product");
+        newProduct.setFont(new Font("SansSerif", Font.BOLD, 18));
+        newProduct.setBounds(350, 510, 350, 35);
+        newProduct.setBackground(Color.CYAN);
+        newProduct.setForeground(Color.BLACK);
+        form.add(newProduct);
 
         back = new Button("Back");
         back.setFont(new Font("SansSerif", Font.BOLD, 18));
@@ -209,14 +215,14 @@ public class ExistingProduct extends JFrame {
 
         // ! ======= Action Listeners ==========
 
-        addProduct.addActionListener(new ActionListener() {
+        updateProduct.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
                 // ! ------------ Will check in future what details are needed to perform this
                 // operations.
                 String productName = productNameField.getText().trim();
-                // String productId = productIdField.getText().trim();
+                String productId = productIdField.getText().trim();
                 String categoryinfo = category.getText().trim();
                 String prodDescription = description.getText().trim();
 
@@ -228,10 +234,32 @@ public class ExistingProduct extends JFrame {
                     return;
                 }
 
+                if (productId.length() != 12) {
+                    statuslbl.setText("Invalid Product ID format.");
+                    return;
+                }
+
                 try {
 
-                    statuslbl.setText("Adding Product.......");
-                    // TODO: Logic to Update product into database.
+                    statuslbl.setText("Updating Product.......");
+
+                    Connection conn = DBConnection.getConnection();
+                    String updateProductQuery = "UPDATE PRODUCT SET PRODUCT_NAME = ?, CATEGORY = ?, DESCRIPTION = ? WHERE PRODUCT_ID = ?;";
+                    PreparedStatement ps = conn.prepareStatement(updateProductQuery);
+                    ps.setString(1, productName);
+                    ps.setString(2, categoryinfo);
+                    ps.setString(3, prodDescription);
+                    ps.setString(4, productId);
+
+                    int affectedRows = ps.executeUpdate();
+
+                    if (affectedRows > 0) {
+                        JOptionPane.showMessageDialog(null, "Product Updated Successfully", "Update Product",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    conn.close();
+                    statuslbl.setText("");
+                    return;
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -245,19 +273,34 @@ public class ExistingProduct extends JFrame {
             public void actionPerformed(ActionEvent e) {
 
                 // ! Will check in future what details are needed to perform this action.
-                String productName = productNameField.getText().trim();
-                // String productId = productIdField.getText().trim();
-                String categoryinfo = category.getText().trim();
-                String prodDescription = description.getText().trim();
+                String productId = productIdField.getText().trim();
 
-                if (prodDescription.isEmpty() || productName.isEmpty() || categoryinfo.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Please enter all feilds first.", "Empty fields",
+                if (productId.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Please enter product id feilds first.", "Empty fields",
                             JOptionPane.INFORMATION_MESSAGE);
                     return;
                 }
 
+                if (productId.length() != 12 || !productId.matches("^[A-Z]{3}-[A-Z]{3}-[0-9]{4}$") || !productId.startsWith("PRO-BGB-")) {
+                    statuslbl.setText("Invalid Product ID format.");
+                    return;
+                }
+
                 try {
-                    // TODO: Logic to delete product from the database
+                    Connection conn = DBConnection.getConnection();
+                    String deleteProductQuery = "DELETE FROM PRODUCT WHERE PRODUCT_ID = ?;";
+                    PreparedStatement ps = conn.prepareStatement(deleteProductQuery);
+                    ps.setString(1, productId);
+
+                    int affectedRows = ps.executeUpdate();
+
+                    if (affectedRows > 0) {
+                        JOptionPane.showMessageDialog(null, "Product Deleted Successfully", "Delete Product",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    conn.close();
+                    return;
+
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -268,16 +311,41 @@ public class ExistingProduct extends JFrame {
         search.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String id = productIdField.getText().trim();
-                if (id.isEmpty()) {
+                String productId = productIdField.getText().trim();
+                if (productId.isEmpty()) {
                     statuslbl.setText("Please enter product ID before search.");
                     return;
                 }
-                // TODO: Fetch Data from database of a product and display on the screen.
 
-                productNameField.setText("To be fetched from database");
-                category.setText("To be fetched from database");
-                description.setText("To be fetched from database");
+                if (productId.length() != 12 || !productId.matches("^[A-Z]{3}-[A-Z]{3}-[0-9]{4}$") || !productId.startsWith("PRO-BGB-")) {
+                    statuslbl.setText("Invalid Product ID format.");
+                    return;
+                }
+
+                try {
+                    Connection conn = DBConnection.getConnection();
+                    String fetchProductQuery = "SELECT * FROM PRODUCT WHERE PRODUCT_ID = ?;";
+                    PreparedStatement ps = conn.prepareStatement(fetchProductQuery);
+                    ps.setString(1, productId);
+                    ResultSet res = ps.executeQuery();
+
+                    if (res.next()) {
+                        productNameField.setText(res.getString("PRODUCT_NAME"));
+                        category.setText(res.getString("CATEGORY"));
+                        description.setText(res.getString("DESCRIPTION"));
+                    } else {
+                        JOptionPane.showMessageDialog(null, "No record found for this product.", "No Record",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    conn.close();
+                    return;
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
                 return;
             }
         });
@@ -286,15 +354,16 @@ public class ExistingProduct extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 productNameField.setText("");
-                productIdField.setText("");
-                category.setText("");;
+                productIdField.setText("PRO-BGB-0001");
+                category.setText("");
+                ;
                 description.setText("");
                 statuslbl.setText("");
                 return;
             }
         });
 
-        updateProduct.addActionListener(new ActionListener() {
+        newProduct.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisible(false);
@@ -309,6 +378,24 @@ public class ExistingProduct extends JFrame {
                 setVisible(false);
                 new AdminFeatures();
                 return;
+            }
+        });
+
+        productIdField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (productIdField.getText().equals("PRO-BGB-0001")) {
+                    productIdField.setText("");
+                    productIdField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (productIdField.getText().isEmpty()) {
+                    productIdField.setForeground(Color.GRAY);
+                    productIdField.setText("PRO-BGB-0001");
+                }
             }
         });
 

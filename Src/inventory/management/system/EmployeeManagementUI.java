@@ -4,7 +4,10 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
-// import java.sql.*; // ✅ JDBC
+import java.security.SecureRandom;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class EmployeeManagementUI extends JFrame implements ActionListener {
 
@@ -13,9 +16,6 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
     boolean found;
 
     Button btnUpdate, btnAdd, btnShow, btnDelete, btnExit;
-
-    // TODO: Database connection
-    // Connection con = DBConnection.getConnection();
 
     // ✅ Table Model (global)
     DefaultTableModel tableModel;
@@ -126,8 +126,9 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         table = new JTable(tableModel);
 
         table.setRowHeight(30);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        table.setFont(new Font("SansSerif", Font.BOLD, 14));
         table.setForeground(Color.WHITE);
+        table.setBackground(getForeground());
         table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 18));
         table.getTableHeader().setBackground(new Color(56, 189, 248));
         table.getTableHeader().setForeground(Color.WHITE);
@@ -147,7 +148,34 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
 
     // ! ===== LOAD DATA FROM DB =====
     private void loadTableData() {
-        // TODO : Load the data from database and store into Table.
+        tableModel.setRowCount(0);
+        try {
+            Connection conn = DBConnection.getConnection();
+            String loadEmployeeDataQuery = "SELECT * FROM EMPLOYEE;";
+            PreparedStatement psStmt = conn.prepareStatement(loadEmployeeDataQuery);
+            ResultSet res = psStmt.executeQuery();
+
+            while (res.next()) {
+                tableModel.addRow(new Object[] {
+                        res.getString("EMPLOYEE_ID"),
+                        res.getString("EMPLOYEE_NAME"),
+                        res.getString("MOBILE_NO"),
+                        res.getInt("AGE"),
+                        res.getString("EMAIL"),
+                        res.getString("ADDRESS"),
+                        res.getString("GENDER"),
+                        res.getString("DEPARTMENT"),
+                        res.getString("DESIGNATION"),
+                        res.getDouble("SALARY")
+                });
+            }
+
+            conn.close();
+            return;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // ! ================ ADD PANEL ======================
@@ -167,7 +195,7 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         form.setBorder(BorderFactory.createEmptyBorder(50, 100, 50, 100));
         form.setBackground(new Color(30, 41, 59));
 
-        JTextField txtId = new JTextField();
+        JTextField txtId = new JTextField("EMP-BGB-0001");
         JTextField txtName = new JTextField();
         JTextField txtMobile = new JTextField();
         JTextField txtAge = new JTextField();
@@ -190,6 +218,8 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
             field.setBackground(Color.WHITE);
 
         }
+
+        txtId.setForeground(Color.GRAY);
 
         JLabel idLbl = new JLabel("Employee ID: ");
         idLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
@@ -240,6 +270,8 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         salaryLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
         salaryLbl.setForeground(Color.WHITE);
         salaryLbl.setBackground(Color.WHITE);
+
+        placeHolder(txtId); // ! Setting the placeholder
 
         form.add(idLbl);
         form.add(txtId);
@@ -298,6 +330,7 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
             String department = txtDepartment.getText().trim();
             String designation = txtDesignation.getText().trim();
             String salaryStr = txtSalary.getText().trim();
+            String password = generatePassword();
 
             int age = 0;
             double salary = 0;
@@ -315,6 +348,12 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
                     || salaryStr.isEmpty()) {
                 JOptionPane.showMessageDialog(panel, "Please fill all the fields.", "Empty fields",
                         JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            if (id.length() != 12 || !id.matches("^[A-Z]{3}-[A-Z]{3}-[0-9]{4}$") || !id.startsWith("EMP-BGB-")) {
+                JOptionPane.showMessageDialog(panel, "Invalid ID Format", "Invalid ID",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -349,7 +388,48 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
                 return;
             }
 
-            // TODO : Insert into database
+            try {
+
+                Connection conn = DBConnection.getConnection();
+                String addEmployeeQuery = "INSERT INTO EMPLOYEE (EMPLOYEE_ID, EMPLOYEE_NAME, MOBILE_NO, AGE, EMAIL, ADDRESS, GENDER, DEPARTMENT, DESIGNATION, SALARY, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                PreparedStatement psStmt = conn.prepareStatement(addEmployeeQuery);
+                psStmt.setString(1, id);
+                psStmt.setString(2, name);
+                psStmt.setString(3, mobileNo);
+                psStmt.setInt(4, age);
+                psStmt.setString(5, email);
+                psStmt.setString(6, address);
+                psStmt.setString(7, gender);
+                psStmt.setString(8, department);
+                psStmt.setString(9, designation);
+                psStmt.setDouble(10, salary);
+                psStmt.setString(11, password);
+
+                int affectedRows = psStmt.executeUpdate();
+
+                if (affectedRows > 0) {
+                    JOptionPane.showMessageDialog(panel,
+                            "Employee Created Successfuly\nUsername: " + email + "\nPassword: " + password + "",
+                            "Employee Creation", JOptionPane.INFORMATION_MESSAGE);
+                }
+
+                txtId.setText("");
+                txtName.setText("");
+                txtMobile.setText("");
+                txtAge.setText("");
+                txtEmail.setText("");
+                txtAddress.setText("");
+                txtDepartment.setText("");
+                txtDesignation.setText("");
+                txtSalary.setText("");
+                genderBox.setSelectedIndex(0);
+
+                conn.close();
+                return;
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         });
 
         // ! -------------------- RESET ----------------------------
@@ -388,7 +468,7 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         form.setBorder(BorderFactory.createEmptyBorder(50, 100, 50, 100));
         form.setBackground(new Color(30, 41, 59));
 
-        JTextField txtId = new JTextField();
+        JTextField txtId = new JTextField("EMP-BGB-0001");
         JTextField txtName = new JTextField();
         JTextField txtMobile = new JTextField();
         JTextField txtAge = new JTextField();
@@ -408,6 +488,8 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
             field.setForeground(Color.BLACK);
             field.setBackground(Color.WHITE);
         }
+
+        txtId.setForeground(Color.GRAY);
 
         JLabel idLbl = new JLabel("Search By Employee ID: ");
         idLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
@@ -461,6 +543,8 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
 
         genderBox.setFont(new Font("SansSerif", Font.BOLD, 18));
 
+        placeHolder(txtId); // ! Setting the placeholder
+
         form.add(idLbl);
         form.add(txtId);
         form.add(nameLbl);
@@ -512,12 +596,17 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         final int[] foundIndex = new int[] { -1 };
 
         loadBtn.addActionListener(e -> {
-            // TODO : Load from the Table if user exist.
 
             String id = txtId.getText().trim();
             if (id.isEmpty()) {
                 JOptionPane.showMessageDialog(panel, "Enter an Employee ID to search.", "Input needed",
                         JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            if (id.length() != 12 || !id.matches("^[A-Z]{3}-[A-Z]{3}-[0-9]{4}$") || !id.startsWith("EMP-BGB-")) {
+                JOptionPane.showMessageDialog(panel, "Invalid ID Format", "Invalid ID",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -580,6 +669,12 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
                 return;
             }
 
+            if (id.length() != 12 || !id.matches("^[A-Z]{3}-[A-Z]{3}-[0-9]{4}$") || !id.startsWith("EMP-BGB-")) {
+                JOptionPane.showMessageDialog(panel, "Invalid ID Format", "Invalid ID",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             if (age < 0) {
                 JOptionPane.showMessageDialog(panel, "Age should be positive number", "Invalid Age",
                         JOptionPane.WARNING_MESSAGE);
@@ -610,7 +705,50 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            // TODO : update database logic
+
+            try {
+
+                Connection conn = DBConnection.getConnection();
+                String updateEmployeeQuery = "UPDATE EMPLOYEE SET EMPLOYEE_NAME = ?, MOBILE_NO = ?, AGE = ?, EMAIL = ?, ADDRESS = ?, GENDER = ?, DEPARTMENT = ?, DESIGNATION = ?, SALARY = ? WHERE EMPLOYEE_ID = ?";
+                PreparedStatement psStmt = conn.prepareStatement(updateEmployeeQuery);
+                psStmt.setString(1, name);
+                psStmt.setString(2, mobileNo);
+                psStmt.setInt(3, age);
+                psStmt.setString(4, email);
+                psStmt.setString(5, address);
+                psStmt.setString(6, gender);
+                psStmt.setString(7, department);
+                psStmt.setString(8, designation);
+                psStmt.setDouble(9, salary);
+                psStmt.setString(10, id);
+
+                int affectedRows = psStmt.executeUpdate();
+
+                if (affectedRows > 0) {
+                    JOptionPane.showMessageDialog(panel,
+                            "Employee Updated Successfuly\n",
+                            "Employee Creation", JOptionPane.INFORMATION_MESSAGE);
+                    loadTableData();
+                }
+
+                conn.close();
+
+                txtId.setText("");
+                txtName.setText("");
+                txtMobile.setText("");
+                txtAge.setText("");
+                txtEmail.setText("");
+                txtAddress.setText("");
+                txtDepartment.setText("");
+                txtDesignation.setText("");
+                txtSalary.setText("");
+                genderBox.setSelectedIndex(0);
+
+                return;
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         });
 
         resetBtn.addActionListener(e -> {
@@ -651,9 +789,10 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         JLabel idLbl = new JLabel("Employee ID:");
         idLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
         idLbl.setForeground(Color.WHITE);
-        JTextField txtId = new JTextField();
-        txtId.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        JTextField txtId = new JTextField("EMP-BGB-0001");
+        txtId.setFont(new Font("SansSerif", Font.BOLD, 18));
         txtId.setBackground(Color.WHITE);
+        txtId.setForeground(Color.GRAY);
 
         Button searchBtn = new Button("Search");
         searchBtn.setForeground(Color.WHITE);
@@ -709,6 +848,8 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         designationLbl.setFont(new Font("SansSerif", Font.BOLD, 22));
         designationLbl.setForeground(Color.WHITE);
 
+        placeHolder(txtId); // ! Setting the placeholder
+
         // Add components to form (search row first)
         form.add(idLbl);
         form.add(txtId);
@@ -730,7 +871,7 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         form.add(designationLbl);
         form.add(txtDesignation);
 
-        // Button panel (consistent with other panels)
+        // ! Button panel (consistent with other panels)
         JPanel btnPanel = new JPanel();
         btnPanel.setLayout(null);
         btnPanel.setBackground(new Color(15, 23, 42));
@@ -759,6 +900,12 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
             if (id.isEmpty()) {
                 JOptionPane.showMessageDialog(panel, "Enter an Employee ID to search.", "Input needed",
                         JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            if (id.length() != 12 || !id.matches("^[A-Z]{3}-[A-Z]{3}-[0-9]{4}$") || !id.startsWith("EMP-BGB-")) {
+                JOptionPane.showMessageDialog(panel, "Invalid ID Format", "Invalid ID",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -795,23 +942,46 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
         });
 
         deleteBtn.addActionListener(e -> {
+            String id = txtId.getText().trim();
             if (foundIndex[0] == -1) {
                 JOptionPane.showMessageDialog(panel, "No employee selected to delete. Please search first.",
                         "Nothing to delete", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
+            if (id.length() != 12 || !id.matches("^[A-Z]{3}-[A-Z]{3}-[0-9]{4}$") || !id.startsWith("EMP-BGB-")) {
+                JOptionPane.showMessageDialog(panel, "Invalid ID Format", "Invalid ID",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             int confirm = JOptionPane.showConfirmDialog(panel, "Are you sure you want to delete this employee?",
                     "Confirm Delete", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                if (tableModel != null && foundIndex[0] >= 0 && foundIndex[0] < tableModel.getRowCount()) {
-                    tableModel.removeRow(foundIndex[0]);
-                    JOptionPane.showMessageDialog(panel, "Employee deleted.", "Deleted",
-                            JOptionPane.INFORMATION_MESSAGE);
+
+                try {
+
+                    Connection conn = DBConnection.getConnection();
+                    String deleteEmployeeQuery = "DELETE FROM EMPLOYEE WHERE EMPLOYEE_ID = ?";
+                    PreparedStatement psStmt = conn.prepareStatement(deleteEmployeeQuery);
+                    psStmt.setString(1, id);
+
+                    int affectedRow = psStmt.executeUpdate();
+
+                    if (affectedRow > 0) {
+                        JOptionPane.showMessageDialog(panel, "Employee Deleted Successfully", "Delete Employee",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        loadTableData();
+                    }
+                    conn.close();
+                    clearDetailFields(detailFields);
+                    return;
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
-                foundIndex[0] = -1;
-                txtId.setText("");
-                clearDetailFields(detailFields);
+            }else if(confirm == JOptionPane.NO_OPTION) {
+                return;
             }
         });
 
@@ -861,6 +1031,40 @@ public class EmployeeManagementUI extends JFrame implements ActionListener {
             dispose();
             new AdminFeatures();
         }
+    }
+
+    // ! ================== Random 10 digit password generator
+
+    public static String generatePassword() {
+        final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < 10; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        return password.toString();
+    }
+
+    private void placeHolder(JTextField txtId) {
+        txtId.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (txtId.getText().equals("EMP-BGB-0001")) {
+                    txtId.setText("");
+                    txtId.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (txtId.getText().isEmpty()) {
+                    txtId.setForeground(Color.GRAY);
+                    txtId.setText("EMP-BGB-0001");
+                }
+            }
+        });
     }
 
     public static void main(String[] args) {
