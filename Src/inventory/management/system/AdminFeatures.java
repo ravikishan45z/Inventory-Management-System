@@ -166,10 +166,13 @@ public class AdminFeatures {
 
         contentPanel.add(dashboardHomePanel, "HOME");
         contentPanel.add(new SalesPurchasePanel(), "SALES_PURCHASE");
+        contentPanel.add(new ReportPanel(), "REPORTS");
 
         dashboardBtn.addActionListener(e -> ((CardLayout) contentPanel.getLayout()).show(contentPanel, "HOME"));
         salePurchaseBtn
                 .addActionListener(e -> ((CardLayout) contentPanel.getLayout()).show(contentPanel, "SALES_PURCHASE"));
+
+                reportsBtn.addActionListener(e -> ((CardLayout) contentPanel.getLayout()).show(contentPanel, "REPORTS"));
 
         frame.add(contentPanel, BorderLayout.CENTER);
 
